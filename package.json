@@ -2,7 +2,7 @@
   "name": "markdown-to-image",
   "displayName": "Markdown to image",
   "version": "0.0.1",
-  "description": "A basic Plasmo extension.",
+  "description": "Render Markdown as a polished image that can be copied or downloaded.",
   "author": "sexxion",
   "scripts": {
     "dev": "plasmo dev",
@@ -10,6 +10,8 @@
     "package": "plasmo package"
   },
   "dependencies": {
+    "html-to-image": "^1.11.13",
+    "marked": "^18.0.2",
     "plasmo": "0.90.5",
     "react": "18.2.0",
     "react-dom": "18.2.0"
@@ -24,8 +26,10 @@
     "typescript": "5.3.3"
   },
   "manifest": {
-    "host_permissions": [
-      "https://*/*"
+    "permissions": [
+      "clipboardRead",
+      "clipboardWrite",
+      "sidePanel"
     ]
   }
 }
