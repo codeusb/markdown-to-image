@@ -2,6 +2,9 @@ import { toBlob, toPng } from "html-to-image"
 import { marked } from "marked"
 import { useEffect, useMemo, useRef, useState } from "react"
 
+const contentStorageKey = "markdown-to-image:content"
+const keepContentStorageKey = "markdown-to-image:keep-content"
+
 marked.setOptions({
   breaks: true,
   gfm: true
@@ -43,6 +46,7 @@ export function MarkdownImageWorkspace() {
   const [imageUrl, setImageUrl] = useState("")
   const [isEditorExpanded, setIsEditorExpanded] = useState(true)
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(true)
+  const [shouldKeepContent, setShouldKeepContent] = useState(false)
   const [toast, setToast] = useState("")
 
   const previewHtml = useMemo(() => {
@@ -50,16 +54,27 @@ export function MarkdownImageWorkspace() {
   }, [markdown])
 
   useEffect(() => {
-    const cachedMarkdown = localStorage.getItem("markdown-to-image:content")
+    const savedPreference =
+      localStorage.getItem(keepContentStorageKey) === "true"
 
-    if (cachedMarkdown) {
-      setMarkdown(cachedMarkdown)
+    setShouldKeepContent(savedPreference)
+
+    if (savedPreference) {
+      setMarkdown(localStorage.getItem(contentStorageKey) || "")
+    } else {
+      localStorage.removeItem(contentStorageKey)
     }
   }, [])
 
   useEffect(() => {
-    localStorage.setItem("markdown-to-image:content", markdown)
-  }, [markdown])
+    localStorage.setItem(keepContentStorageKey, String(shouldKeepContent))
+
+    if (shouldKeepContent) {
+      localStorage.setItem(contentStorageKey, markdown)
+    } else {
+      localStorage.removeItem(contentStorageKey)
+    }
+  }, [markdown, shouldKeepContent])
 
   useEffect(() => {
     if (!toast) return
@@ -132,6 +147,19 @@ export function MarkdownImageWorkspace() {
           <span>Markdown</span>
           <div className="panelActions">
             <small>{markdown.length} 字符</small>
+            <label className="keepContentSwitch">
+              <input
+                checked={shouldKeepContent}
+                type="checkbox"
+                onChange={(event) => {
+                  setShouldKeepContent(event.target.checked)
+                  setToast(
+                    event.target.checked ? "已开启保留内容" : "已关闭保留内容"
+                  )
+                }}
+              />
+              <span>保留内容</span>
+            </label>
             <button
               className="toggleButton"
               type="button"
@@ -280,6 +308,24 @@ const styles = `
     align-items: center;
     gap: 8px;
     min-width: 0;
+  }
+
+  .keepContentSwitch {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #625b53;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .keepContentSwitch input {
+    width: 14px;
+    height: 14px;
+    accent-color: #1f7a68;
+    cursor: pointer;
   }
 
   textarea {
